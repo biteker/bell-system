@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+*.env
+
+# macOS
+.DS_Store
+
+# Sertifikalar
+certs/
+
+# IDE ve editör
+.vscode/
+.idea/
+*.swp
+
+# Diğer log/temp dosyaları
+*.log
+*.tmp
+*.bak
