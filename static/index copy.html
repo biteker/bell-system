@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Okul Kontrol Paneli</title>
+  <style>
+    button {
+      font-size: 24px;
+      margin: 10px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔔 Okul Kontrol Paneli</h1>
+  <button onclick="play('bell')">Zili Çal</button>
+  <button onclick="play('anthem')">İstiklal Marşı</button>
+  <br><br>
+  <button id="startBtn" onclick="startStream()">🎙️ Yayını Başlat</button>
+  <button id="stopBtn" onclick="stopStream()" disabled>⛔ Yayını Durdur</button>
+
+  <script>
+    function play(type) {
+      fetch('/play/' + type).then(res => res.text()).then(alert);
+    }
+
+    let socket, processor, stream;
+
+    async function startStream() {
+      socket = new WebSocket("ws://10.42.0.1:8765");
+      socket.binaryType = "arraybuffer";
+
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const context = new AudioContext();
+      const source = context.createMediaStreamSource(stream);
+      processor = context.createScriptProcessor(1024, 1, 1);
+
+      processor.onaudioprocess = e => {
+        const input = e.inputBuffer.getChannelData(0);
+        const buffer = new Int16Array(input.length);
+        for (let i = 0; i < input.length; i++) {
+          buffer[i] = input[i] * 0x7FFF;
+        }
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(buffer.buffer);
+        }
+      };
+
+      source.connect(processor);
+      processor.connect(context.destination);
+
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+    }
+
+    function stopStream() {
+      if (processor) processor.disconnect();
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      if (socket) socket.close();
+
+      document.getElementById("startBtn").disabled = false;
+      document.getElementById("stopBtn").disabled = true;
+    }
+  </script>
+</body>
+</html>

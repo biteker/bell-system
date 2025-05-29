@@ -19,6 +19,7 @@ async def audio_handler(websocket):
     print("📲 Canlı yayın bağlantısı kuruldu!")
     try:
         async for message in websocket:
+            print(f"📦 Veri geldi: {len(message)} byte")  # <--- BU SATIRI EKLE
             audio_data = np.frombuffer(message, dtype=np.int16)
             stream.write(audio_data.tobytes())
     except websockets.exceptions.ConnectionClosed:
